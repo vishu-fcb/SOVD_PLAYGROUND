@@ -1,0 +1,166 @@
+services:
+  # SOVD Tester - Web-based UI for testing the SOVD Gateway
+  sovd-tester:
+    build: ./sovd-tester
+    ports:
+      - "8085:80"
+
+  # Token Service - JWT token generation for authentication
+  sovd-token-service:
+    build: ./sovd-token-service
+    ports:
+      - "8086:8000"
+    volumes:
+      - ./sovd-token-service/keys:/app/keys
+    environment:
+      - KEY_FILE=keys/private_key.pem
+    command: uvicorn sovd-token-service:app --host 0.0.0.0 --port 8000
+
+  # n8n - Workflow automation platform for AI agent testing
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    environment:
+      - WEBHOOK_URL=http://localhost:5678
+      - N8N_SECURE_COOKIE=false
+      - N8N_CORS_ORIGINS=http://localhost:8085,http://127.0.0.1:8085
+      - N8N_CORS_METHODS=GET,POST,OPTIONS
+      - N8N_CORS_HEADERS=Content-Type,Authorization
+      - N8N_CORS_CREDENTIALS=false
+    restart: unless-stopped
+
+  # KUKSA Databroker - VSS data broker for vehicle signals
+  kuksa-databroker:
+    image: ghcr.io/eclipse-kuksa/kuksa-databroker:0.6
+    ports:
+      - "55555:55555"  # Expose port for external access
+    command: --insecure  # Development mode - disable TLS authentication
+
+  # Envoy Proxy - Entry point with JWT validation
+  sovd-gateway-envoy:
+    image: envoyproxy/envoy:v1.28-latest
+    container_name: sovd-gateway-envoy
+    volumes:
+      - ./sovd-gateway-sidecar/envoy.yaml:/etc/envoy/envoy.yaml:ro
+    ports:
+      - "8080:8080"  # Proxy port (main entry point with JWT auth)
+      - "9901:9901"  # Admin port
+    command: ["-c", "/etc/envoy/envoy.yaml", "--log-level", "info"]
+    restart: unless-stopped
+    depends_on:
+      - sovd-gateway
+      - sovd-gateway-opa
+
+  # OPA - Open Policy Agent for authorization
+  sovd-gateway-opa:
+    image: openpolicyagent/opa:latest-envoy
+    container_name: sovd-gateway-opa
+    ports:
+      - "8182:8181"  # OPA HTTP API (changed from 8181 to avoid conflict)
+      - "9191:9191"  # OPA gRPC for Envoy
+    volumes:
+      - ./sovd-gateway-sidecar/policy.rego:/policy/policy.rego:ro
+    command:
+      - "run"
+      - "--server"
+      - "--addr=0.0.0.0:8181"
+      - "--diagnostic-addr=0.0.0.0:8282"
+      - "--set=plugins.envoy_ext_authz_grpc.addr=:9191"
+      - "--set=plugins.envoy_ext_authz_grpc.path=envoy/authz/allow"
+      - "--set=decision_logs.console=true"
+      - "/policy/policy.rego"
+    restart: unless-stopped
+
+  # SOVD Gateway - API aggregator (behind Envoy proxy)
+  sovd-gateway:
+    build: ./sovd-gateway
+    ports:
+      - "7660:7660"  # Internal port (behind Envoy)
+    environment:
+      - SOVD_SERVER_URLS=http://sovd-server-1:7690,http://sovd-server-2:7691
+    depends_on:
+      - sovd-server-1
+      - sovd-server-2
+    command: uvicorn main:app --host 0.0.0.0 --port 7660
+
+  # SOVD Server 1 - Primary service registry
+  sovd-server-1:
+    build: ./sovd-server
+    ports:
+      - "7690:7690"
+    environment:
+      - SERVER_ID=server-1
+    command: uvicorn main:app --host 0.0.0.0 --port 7690
+
+  # SOVD Server 2 - Secondary service registry
+  sovd-server-2:
+    build: ./sovd-server
+    ports:
+      - "7691:7691"
+    environment:
+      - SERVER_ID=server-2
+    command: uvicorn main:app --host 0.0.0.0 --port 7691
+
+  # AC Control - Vehicle climate control application
+  ac-control:
+    build: ./sovd-apps/ac-control
+    ports:
+      - "8082:8082"
+    environment:
+      - SERVER_URL=http://sovd-server-1:7690
+      - APP_URL=http://ac-control:8082
+      - ENABLE_REGISTRATION=true
+    depends_on:
+      - sovd-server-1
+    command: uvicorn main:app --host 0.0.0.0 --port 8082
+
+  # Health Monitoring - System diagnostics application
+  health-monitoring:
+    build: ./sovd-apps/health-monitoring
+    ports:
+      - "8083:8083"
+    environment:
+      - SERVER_URL=http://sovd-server-1:7690
+      - APP_URL=http://health-monitoring:8083
+      - ENABLE_REGISTRATION=true
+    depends_on:
+      - sovd-server-1
+    pid: host
+    command: uvicorn main:app --host 0.0.0.0 --port 8083
+
+  # Light Control KUKSA - Vehicle lighting via KUKSA/VSS
+  light-control-kuksa:
+    build: ./sovd-apps/light-control-kuksa
+    ports:
+      - "8084:8084"
+    environment:
+      - SERVER_URL=http://sovd-server-2:7691
+      - APP_URL=http://light-control-kuksa:8084
+      - KUKSA_IP=kuksa-databroker
+      - KUKSA_PORT=55555
+      - ENABLE_REGISTRATION=true
+    depends_on:
+      - sovd-server-2
+      - kuksa-databroker
+    pid: host
+    command: uvicorn main:app --host 0.0.0.0 --port 8084
+
+  # MCP Server - Model Context Protocol interface
+  mcp-server:
+    build: ./mcp-server
+    restart: on-failure
+    ports:
+      - "7693:7693"
+    environment:
+      - SOVD_GW_URL=http://sovd-gateway:7660
+      - MCP_LOCAL_OPENAPI=true
+      - FASTMCP_EXPERIMENTAL_ENABLE_NEW_OPENAPI_PARSER=true
+    depends_on:
+      - sovd-gateway
+
+volumes:
+  n8n_data:
+  token_keys:

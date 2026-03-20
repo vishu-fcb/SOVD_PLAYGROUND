@@ -1,0 +1,212 @@
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      protocol: TCP
+      address: 0.0.0.0
+      port_value: 9901
+
+static_resources:
+  listeners:
+  - name: listener_0
+    address:
+      socket_address:
+        protocol: TCP
+        address: 0.0.0.0
+        port_value: 8080
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          scheme_header_transformation:
+            scheme_to_overwrite: https
+          stat_prefix: ingress_http
+          codec_type: AUTO
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: local_service
+              domains: ["*"]
+              cors:
+                allow_origin_string_match:
+                - prefix: "*"
+                allow_methods: GET, PUT, DELETE, POST, PATCH, OPTIONS
+                allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout,authorization
+                max_age: "1728000"
+                expose_headers: grpc-status,grpc-message,x-envoy-upstream-service-time
+                allow_credentials: true
+              routes:
+              - match:
+                  path: "/openapi.json"
+                typed_per_filter_config:
+                  envoy.filters.http.ext_authz:
+                    "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                    disabled: true
+                route:
+                  cluster: sovd_gateway
+              - match:
+                  prefix: "/docs"
+                typed_per_filter_config:
+                  envoy.filters.http.ext_authz:
+                    "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                    disabled: true
+                route:
+                  cluster: sovd_gateway
+              - match:
+                  prefix: "/redoc"
+                typed_per_filter_config:
+                  envoy.filters.http.ext_authz:
+                    "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                    disabled: true
+                route:
+                  cluster: sovd_gateway
+              - match:
+                  prefix: "/discover"
+                typed_per_filter_config:
+                  envoy.filters.http.ext_authz:
+                    "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                    disabled: true
+                route:
+                  cluster: sovd_gateway
+              - match:
+                  prefix: "/health"
+                typed_per_filter_config:
+                  envoy.filters.http.ext_authz:
+                    "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                    disabled: true
+                route:
+                  cluster: sovd_gateway
+              - match:
+                  prefix: "/status"
+                typed_per_filter_config:
+                  envoy.filters.http.ext_authz:
+                    "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                    disabled: true
+                route:
+                  cluster: sovd_gateway
+              - match:
+                  prefix: "/refresh-docs"
+                typed_per_filter_config:
+                  envoy.filters.http.ext_authz:
+                    "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                    disabled: true
+                route:
+                  cluster: sovd_gateway
+              - match:
+                  prefix: "/"
+                route:
+                  cluster: sovd_gateway
+          http_filters:
+          # CORS Filter
+          - name: envoy.filters.http.cors
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
+          
+          # JWT Authentication Filter (validates and forwards payload)
+          - name: envoy.filters.http.jwt_authn
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.JwtAuthentication
+              providers:
+                sovd_token_service:
+                  issuer: https://auth.oem.example.com
+                  audiences:
+                  - sovd-api
+                  from_headers:
+                  - name: Authorization
+                    value_prefix: "Bearer "
+                  local_jwks:
+                    inline_string: |
+                      {
+                        "keys": [
+                          {
+                            "kty": "EC",
+                            "crv": "P-256",
+                            "x": "5E1LnyiFO12ihfBg1z3X6yOFokTWMmoo-HvR1LyRZJY",
+                            "y": "aiT-UpQrFWkovkqfDPWhcMRAdp36BgM65T_j909jl7o",
+                            "use": "sig",
+                            "alg": "ES256",
+                            "kid": "e5a72d3d-e387-4c06-9215-246ce87bf331"
+                          }
+                        ]
+                      }
+                  payload_in_metadata: sovd_token_payload
+                  forward: true
+                  forward_payload_header: x-jwt-payload
+              rules:
+              # Public endpoints - no JWT required (OPA allows without auth)
+              - match:
+                  prefix: "/discover"
+              - match:
+                  prefix: "/openapi.json"
+              - match:
+                  prefix: "/docs"
+              - match:
+                  prefix: "/redoc"
+              - match:
+                  prefix: "/health"
+              - match:
+                  prefix: "/status"
+              - match:
+                  prefix: "/refresh-docs"
+              # All other paths - validate JWT if present, forward payload
+              - match:
+                  prefix: "/"
+                requires:
+                  requires_any:
+                    requirements:
+                    - provider_name: sovd_token_service
+                    - allow_missing: {}
+          
+          # OPA External Authorization Filter - gRPC mode (OPA envoy plugin)
+          - name: envoy.filters.http.ext_authz
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+              transport_api_version: V3
+              grpc_service:
+                envoy_grpc:
+                  cluster_name: opa
+                timeout: 1s
+              metadata_context_namespaces:
+              - envoy.filters.http.jwt_authn
+              failure_mode_allow: false
+              with_request_body:
+                max_request_bytes: 8192
+                allow_partial_message: true
+          
+          # Router filter (must be last)
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+  clusters:
+  # SOVD Gateway cluster
+  - name: sovd_gateway
+    connect_timeout: 5s
+    type: STATIC
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: sovd_gateway
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 7660
+  
+  # OPA cluster for authorization - gRPC endpoint
+  - name: opa
+    connect_timeout: 1s
+    type: STATIC
+    lb_policy: ROUND_ROBIN
+    http2_protocol_options: {}
+    load_assignment:
+      cluster_name: opa
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 9191

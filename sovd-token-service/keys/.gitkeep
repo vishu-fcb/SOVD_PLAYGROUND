@@ -1,0 +1,9 @@
+# Keys Directory
+
+This directory stores the EC P-256 key pair used for signing JWT tokens.
+
+## Files
+- `private_key.pem` - EC P-256 private key (auto-generated on first run)
+- `public_key.pem` - EC P-256 public key (auto-generated from private key)
+
+⚠️ **Security Note**: Keys are auto-generated and stored here. In production, use proper key management solutions (HSM, KMS, etc.).

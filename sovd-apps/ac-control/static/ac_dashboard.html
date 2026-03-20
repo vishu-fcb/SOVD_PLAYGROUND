@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Temperature Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 1em;
+            background: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 1em;
+        }
+        .widget {
+            width: 250px;
+            padding: 1em;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: auto;
+        }
+        .modes {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-bottom: 0.8em;
+        }
+        .mode {
+            font-size: 1.5em;
+            opacity: 0.4;
+            transition: opacity 0.2s;
+        }
+        .mode.active {
+            opacity: 1;
+            color: #007aff;
+        }
+        .fan-container {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 0.5em;
+        }
+        .fan-icon {
+            font-size: 1.2em;
+            margin-right: 0.5em;
+        }
+        .bar {
+            flex: 1;
+            height: 10px;
+            border-radius: 5px;
+            background: #eee;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            background: #007aff;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .temp {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .chart-container {
+            width: 600px;
+            max-width: 100%;
+            margin: 2em auto;
+        }
+        .logs {
+            width: 600px;
+            max-width: 100%;
+            margin: 2em auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            padding: 1em;
+            max-height: 200px; /* fixed height */
+            overflow-y: auto;  /* scrollable */
+        }
+        .log-entry {
+            border-left: 3px solid #007aff;
+            padding-left: 0.5em;
+            margin-bottom: 0.5em;
+            font-size: 0.9em;
+        }
+        .log-time {
+            color: #666;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Temperature Dashboard</h1>
+
+    <div class="widget">
+        <div class="modes">
+            <div id="mode-off" class="mode">❌</div>
+            <div id="mode-eco" class="mode">🌿</div>
+            <div id="mode-high" class="mode">⚡</div>
+        </div>
+
+        <div class="fan-container">
+            <div class="fan-icon">🌀</div>
+            <div class="bar">
+                <div id="bar-fill" class="bar-fill"></div>
+            </div>
+        </div>
+
+        <div class="temp"><span id="temp">--</span> °C</div>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="tempChart"></canvas>
+    </div>
+
+    <div class="logs">
+        <h2>Log Timeline</h2>
+        <div id="logList"></div>
+    </div>
+
+    <script>
+        // Temperature chart setup
+        const ctx = document.getElementById('tempChart').getContext('2d');
+        const tempChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Room Temperature (°C)',
+                    data: [],
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                animation: false,
+                scales: {
+                    x: { title: { display: true, text: "Time" } },
+                    y: { title: { display: true, text: "°C" }, min: 18, max: 30 }
+                }
+            }
+        });
+
+        async function updateData() {
+            try {
+                // Fetch AC state
+                let acRes = await fetch('/data/AC');
+                let ac = await acRes.json();
+
+                // Highlight mode
+                ["mode-off","mode-eco","mode-high"].forEach(id => 
+                    document.getElementById(id).classList.remove("active")
+                );
+                if (ac.data.Mode === "off") document.getElementById("mode-off").classList.add("active");
+                else if (ac.data.Mode === "eco") document.getElementById("mode-eco").classList.add("active");
+                else if (ac.data.Mode === "highspeed") document.getElementById("mode-high").classList.add("active");
+
+                // Fan speed bar
+                let fan = ac.data.FanSpeed;
+                document.getElementById("bar-fill").style.width = (fan * 20) + "%";
+
+                // Fetch Room Temperature
+                let tempRes = await fetch('/data/RoomTemp');
+                let room = await tempRes.json();
+                let temp = room.data.Temperature;
+                document.getElementById("temp").textContent = temp;
+
+                // Update chart
+                const now = new Date().toLocaleTimeString();
+                tempChart.data.labels.push(now);
+                tempChart.data.datasets[0].data.push(temp);
+
+                if (tempChart.data.labels.length > 20) {
+                    tempChart.data.labels.shift();
+                    tempChart.data.datasets[0].data.shift();
+                }
+                tempChart.update();
+
+                // Fetch logs
+                let logsRes = await fetch('/logs');
+                let logsData = await logsRes.json();
+                let logList = document.getElementById("logList");
+                logList.innerHTML = "";
+
+                logsData.logs.forEach(log => {
+                    let div = document.createElement("div");
+                    div.className = "log-entry";
+                    div.innerHTML = `<div>${log.event}</div><div class="log-time">${log.timestamp}</div>`;
+                    logList.appendChild(div);
+                });
+
+                // auto scroll to bottom
+                logList.parentElement.scrollTop = logList.parentElement.scrollHeight;
+
+            } catch (e) {
+                console.error("Error fetching data:", e);
+            }
+        }
+
+        setInterval(updateData, 2000);
+        updateData();
+    </script>
+</body>
+</html>

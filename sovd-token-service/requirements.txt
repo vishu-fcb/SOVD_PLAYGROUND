@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+pyjwt
+cryptography
+python-jose
+python-multipart
+requests
+aiofiles

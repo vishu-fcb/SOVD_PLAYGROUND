@@ -1,0 +1,6 @@
+fastapi[standard]
+uvicorn
+httpx
+jinja2
+psutil
+pydantic-settings

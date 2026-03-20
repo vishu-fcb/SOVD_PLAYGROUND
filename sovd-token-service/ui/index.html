@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<!--
+  SOVD Token Service UI
+  
+  This interface generates JWT tokens with the following structure:
+  
+  {
+    "iss": "...",              // Issuer - Token issuer URL
+    "sub": "...",              // Subject - User ID
+    "aud": "...",              // Audience - sovd-api
+    "iat": 1234567890,         // Issued At - Auto-generated timestamp
+    "exp": 1234571490,         // Expiration - iat + expires_in
+    "jti": "...",              // JWT ID - Auto-generated UUID
+    "roles": [...],            // User roles array
+    "authorization_details": [ // SOVD-specific authorization
+      {
+        "type": "sovd",
+        "resources": [{"vin": "..."}],
+        "actions": [...]
+      }
+    ]
+  }
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOVD Token Service</title>
+    
+    <!-- Google Fonts - Material Design -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/token-service.css">
+</head>
+<body>
+    <div class="app-container">
+        <div class="main-content">
+            <!-- Header -->
+            <div class="app-header">
+                <div class="app-title">
+                    <span class="material-icons">vpn_key</span>
+                    <span>SOVD Token Service</span>
+                </div>
+                <div class="header-controls">
+                    <div class="status-badge status-connected">
+                        <span class="status-dot"></span>
+                        <span>Active</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Main Panel -->
+                <div class="main-panel">
+                    <!-- Step 1: Token Configurations -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="step-badge">1</span>
+                            <span class="material-icons">tune</span>
+                            <span>Token Configurations</span>
+                        </div>
+                        <div class="card-content">
+                            <!-- Quick Presets -->
+                            <div class="section-title">
+                                <span class="material-icons">playlist_add</span>
+                                <span>Quick Presets (Optional)</span>
+                            </div>
+                            <div class="config-grid" id="config-presets">
+                                <button class="config-card" data-config="oem-developer">
+                                    <span class="material-icons">admin_panel_settings</span>
+                                    <div class="config-title">OEM Developer</div>
+                                    <div class="config-desc">Full Access, All Vehicles</div>
+                                </button>
+                                
+                                <button class="config-card" data-config="workshop-technician">
+                                    <span class="material-icons">build</span>
+                                    <div class="config-title">Workshop Technician</div>
+                                    <div class="config-desc">Diagnostics & Configuration</div>
+                                </button>
+                                
+                                <button class="config-card" data-config="vehicle-monitoring">
+                                    <span class="material-icons">monitor_heart</span>
+                                    <div class="config-title">Vehicle Monitoring</div>
+                                    <div class="config-desc">Read-only Vehicle View</div>
+                                </button>
+                                
+                                <button class="config-card" data-config="read-only">
+                                    <span class="material-icons">visibility</span>
+                                    <div class="config-title">Read Only</div>
+                                    <div class="config-desc">View Metadata Only</div>
+                                </button>
+                                
+                                <button class="config-card" data-config="custom">
+                                    <span class="material-icons">edit</span>
+                                    <div class="config-title">Custom</div>
+                                    <div class="config-desc">Manual Configuration</div>
+                                </button>
+                            </div>
+                            
+                            <!-- Expandable Details Section -->
+                            <div class="details-container">
+                                <div class="section-header clickable" id="details-header">
+                                    <div class="section-title-inline">
+                                        <span class="material-icons">settings</span>
+                                        <span>Configuration Details</span>
+                                    </div>
+                                    <span class="material-icons expand-icon">expand_more</span>
+                                </div>
+                                
+                                <div class="collapsible collapsed details-content" id="details-content">
+                                <!-- JWT Standard Claims -->
+                                <div class="section-subtitle">
+                                    <span class="material-icons">badge</span>
+                                    <span>JWT Standard Claims</span>
+                                </div>
+                                <div class="form-grid">
+                                    <div class="input-field">
+                                        <label for="issuer">
+                                            <code>iss</code> - Issuer
+                                            <span class="field-hint">Token issuer URL</span>
+                                        </label>
+                                        <input type="text" id="issuer" value="https://auth.oem.example.com" placeholder="https://auth.oem.example.com">
+                                    </div>
+                                    
+                                    <div class="input-field">
+                                        <label for="user-id">
+                                            <code>sub</code> - Subject
+                                            <span class="field-hint">User identifier</span>
+                                        </label>
+                                        <input type="text" id="user-id" value="user:tech123" placeholder="user:tech123">
+                                    </div>
+                                    
+                                    <div class="input-field">
+                                        <label for="audience">
+                                            <code>aud</code> - Audience
+                                            <span class="field-hint">Token audience</span>
+                                        </label>
+                                        <input type="text" id="audience" value="sovd-api" placeholder="sovd-api">
+                                    </div>
+                                    
+                                    <div class="input-field">
+                                        <label for="expires-in">
+                                            <code>exp</code> - Expiration
+                                            <span class="field-hint">Token lifetime in seconds</span>
+                                        </label>
+                                        <input type="number" id="expires-in" value="3600" placeholder="3600">
+                                    </div>
+                                </div>
+                                
+                                <!-- Custom Claims -->
+                                <div class="section-subtitle">
+                                    <span class="material-icons">security</span>
+                                    <span>Authorization Claims</span>
+                                </div>
+                                <div class="form-grid">
+                                    <div class="input-field full-width">
+                                        <label for="roles">
+                                            <code>roles</code> - User Roles
+                                            <span class="field-hint">Comma-separated list of roles</span>
+                                        </label>
+                                        <input type="text" id="roles" value="workshop_technician" placeholder="workshop_technician, oem_admin">
+                                    </div>
+                                </div>
+                                
+                                <!-- Authorization Details -->
+                                <div class="section-subtitle">
+                                    <span class="material-icons">directions_car</span>
+                                    <span>Authorization Details</span>
+                                </div>
+                                <div class="form-grid">
+                                    <div class="input-field">
+                                        <label for="vin">
+                                            <code>resources[0].vin</code> - Vehicle VIN
+                                            <span class="field-hint">Vehicle Identification Number</span>
+                                        </label>
+                                        <input type="text" id="vin" value="WVWZZZ1JZXW000000" placeholder="WVWZZZ1JZXW000000">
+                                    </div>
+                                    
+                                    <div class="input-field">
+                                        <label for="actions">
+                                            <code>actions</code> - Permitted Actions
+                                            <span class="field-hint">Comma-separated list of actions</span>
+                                        </label>
+                                        <input type="text" id="actions" value="sovd:data:read, sovd:operations:read" placeholder="sovd:data:read, sovd:configuration:write">
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Generate Token -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="step-badge">2</span>
+                            <span class="material-icons">vpn_key</span>
+                            <span>Generate Token</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="button-group">
+                                <button class="btn btn-primary" id="generate-btn">
+                                    <span class="material-icons">vpn_key</span>
+                                    Generate JWT Token
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Generated Token -->
+                    <div class="card" id="token-card" style="display: none;">
+                        <div class="card-header">
+                            <span class="step-badge">3</span>
+                            <span class="material-icons">security</span>
+                            <span>Generated JWT Token (Raw)</span>
+                            <button class="btn-icon" id="copy-token-btn" title="Copy token to clipboard">
+                                <span class="material-icons">content_copy</span>
+                            </button>
+                        </div>
+                        <div class="card-content">
+                            <div class="token-info-box">
+                                <div class="token-info-label">
+                                    <span class="material-icons">info</span>
+                                    <span>Use this token in Authorization headers or paste into other applications. Click token or copy button to copy.</span>
+                                </div>
+                            </div>
+                            <div class="token-display" id="token-display" title="Click to copy"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 4: Decoded Payload -->
+                    <div class="card" id="decoded-card" style="display: none;">
+                        <div class="card-header">
+                            <span class="step-badge">4</span>
+                            <span class="material-icons">description</span>
+                            <span>Decoded JWT Payload (Formatted)</span>
+                            <button class="btn-icon" id="copy-payload-btn" title="Copy payload JSON to clipboard">
+                                <span class="material-icons">content_copy</span>
+                            </button>
+                        </div>
+                        <div class="card-content">
+                            <pre id="decoded-payload"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="notification" class="notification"></div>
+    
+    <script src="js/token-service.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    # App metadata
+    APP_ID: str = "ac-control"
+    APP_NAME: str = "ac-control"
+    APP_VERSION: str = "1.0.1"
+    APP_VENDOR: str = "DSS"
+    APP_DESCRIPTION: str = "SOVD-compliant app that exposes standardized resources"
+
+    # Runtime / Deployment
+    APP_URL: str = "http://ac-control:8082"
+    SERVER_URL: str = "http://sovd-server:7690"
+
+    # Registration
+    ENABLE_REGISTRATION: bool = True
+
+settings = Settings()

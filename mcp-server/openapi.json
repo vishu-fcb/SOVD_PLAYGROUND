@@ -1,0 +1,4928 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SOVD Gateway - Unified Service APIs",
+    "description": "Service Oriented Vehicle Diagnostics Gateway ",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/discover": {
+      "post": {
+        "tags": [
+          "Server Management"
+        ],
+        "summary": "Discover SOVD servers",
+        "description": "Automatically discovers and registers preconfigured SOVD servers from environment variables. Fetches OpenAPI specifications from each server and creates dynamic routes for accessing their endpoints through the gateway",
+        "operationId": "discover_servers_discover_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscoveryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/register-server": {
+      "post": {
+        "tags": [
+          "Server Management"
+        ],
+        "summary": "Register SOVD server",
+        "description": "Manually registers a SOVD server with the gateway by providing name and URL. Fetches the server's OpenAPI specification and creates dynamic routes for proxying requests to the server's endpoints",
+        "operationId": "register_server_register_server_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServerRegistration"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/servers": {
+      "get": {
+        "tags": [
+          "Server Management"
+        ],
+        "summary": "List SOVD servers",
+        "description": "Retrieves all registered SOVD servers with their URLs, status, and metadata. Use this to see which backend servers are currently connected to the gateway",
+        "operationId": "list_servers_servers_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServersListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/endpoint-mapping": {
+      "get": {
+        "tags": [
+          "Gateway Info"
+        ],
+        "summary": "Get endpoint mapping",
+        "description": "Shows the current mapping between endpoints and their backend SOVD servers. Use this to understand which server handles each specific endpoint path",
+        "operationId": "get_endpoint_mapping_endpoint_mapping_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EndpointMappingResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/refresh-docs": {
+      "post": {
+        "tags": [
+          "Documentation"
+        ],
+        "summary": "Refresh documentation",
+        "description": "Forces a refresh of the OpenAPI documentation by invalidating the cache and regenerating the merged schema from all registered SOVD servers",
+        "operationId": "refresh_docs_refresh_docs_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Health check",
+        "description": "Returns the gateway's health status, version, and type information for monitoring and service discovery purposes",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/status": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Status check",
+        "description": "Returns the gateway's status information (alias for /health). Provides status, version, and type for compatibility with different monitoring systems",
+        "operationId": "status_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app/health-monitoring/health": {
+      "get": {
+        "tags": [
+          "Application: health-monitoring"
+        ],
+        "summary": "[health-monitoring] Get system health metrics",
+        "description": "Returns comprehensive system health metrics including CPU usage, memory statistics, platform information, and system uptime for monitoring overall system performance",
+        "operationId": "get_health_monitoring_health",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_health_monitoring_HealthResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/health-monitoring/proc": {
+      "get": {
+        "tags": [
+          "Application: health-monitoring"
+        ],
+        "summary": "[health-monitoring] List running processes",
+        "description": "Returns all running processes with PID, name, status, CPU usage percentage, and memory usage for system-wide process monitoring and diagnostics",
+        "operationId": "get_health_monitoring_proc",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_health_monitoring_ProcessListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/health-monitoring/proc/{pid}": {
+      "get": {
+        "tags": [
+          "Application: health-monitoring"
+        ],
+        "summary": "[health-monitoring] Get process details",
+        "description": "Returns detailed process information by PID including command line arguments, CPU times, memory usage, status, and creation timestamp for in-depth process analysis",
+        "operationId": "get_health_monitoring_proc_pid",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "",
+              "title": "Pid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_health_monitoring_ProcessDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_health_monitoring_HTTPValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/health-monitoring/net": {
+      "get": {
+        "tags": [
+          "Application: health-monitoring"
+        ],
+        "summary": "[health-monitoring] Get network interfaces",
+        "description": "Returns comprehensive network interface information including status (up/down), speed, and IP addresses for all network interfaces for network diagnostics",
+        "operationId": "get_health_monitoring_net",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_health_monitoring_NetworkStatsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/health-monitoring/fs": {
+      "get": {
+        "tags": [
+          "Application: health-monitoring"
+        ],
+        "summary": "[health-monitoring] Get filesystem information",
+        "description": "Returns detailed filesystem information including filesystem type, mount options, and disk usage statistics (total, used, free space) for all mounted filesystems for storage monitoring",
+        "operationId": "get_health_monitoring_fs",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_health_monitoring_FilesystemResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/health-monitoring/": {
+      "get": {
+        "tags": [
+          "Application: health-monitoring"
+        ],
+        "summary": "[health-monitoring] Root",
+        "description": "GET endpoint from health-monitoring",
+        "operationId": "get_health_monitoring",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/ac-control/logs": {
+      "get": {
+        "tags": [
+          "Application: ac-control"
+        ],
+        "summary": "[ac-control] Get application logs",
+        "description": "Returns all log entries from the AC control application including timestamps and event descriptions for climate system diagnostics and troubleshooting",
+        "operationId": "get_ac_control_logs",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_LogList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Application: ac-control"
+        ],
+        "summary": "[ac-control] Add log entry",
+        "description": "Add a new log entry with event description to the AC control application log for tracking climate system operational events",
+        "operationId": "add_ac_control_log",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/infrastructure__router_manager__LogEntry",
+                "description": "Request body"
+              },
+              "examples": {
+                "example_1": {
+                  "summary": "Example 1",
+                  "value": {
+                    "event": "AC system started"
+                  }
+                },
+                "example_2": {
+                  "summary": "Example 2",
+                  "value": {
+                    "event": "Temperature adjusted to 22°C"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_LogEntry"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_HTTPValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/ac-control/configuration": {
+      "get": {
+        "tags": [
+          "Application: ac-control"
+        ],
+        "summary": "[ac-control] Get configuration",
+        "description": "Retrieves all AC control configuration parameters including temperature settings, fan speed preferences, climate zones, and operational modes",
+        "operationId": "get_ac_control_configuration",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_ConfigurationResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/ac-control/configuration/{key}": {
+      "put": {
+        "tags": [
+          "Application: ac-control"
+        ],
+        "summary": "[ac-control] Update configuration",
+        "description": "Updates a single AC configuration parameter by key. Use this to adjust temperature, fan speed, climate zones, or enable/disable auto climate control",
+        "operationId": "update_ac_control_configuration_key",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The configuration key to update",
+              "title": "Key"
+            },
+            "description": "The configuration key to update"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/infrastructure__router_manager__ConfigUpdate",
+                "description": "Request body"
+              },
+              "examples": {
+                "example_1": {
+                  "summary": "Example 1",
+                  "value": {
+                    "value": 22
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_ConfigurationUpdateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_HTTPValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/ac-control/data": {
+      "get": {
+        "tags": [
+          "Application: ac-control"
+        ],
+        "summary": "[ac-control] List data items",
+        "description": "Returns all AC control data items including ID, name, category, and current values for monitoring temperature, humidity, fan speed, and climate zone settings",
+        "operationId": "get_ac_control_data",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_DataList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/ac-control/data/{item_id}": {
+      "get": {
+        "tags": [
+          "Application: ac-control"
+        ],
+        "summary": "[ac-control] Get data item",
+        "description": "Returns a specific AC control data item by ID with current values, category information, and associated groups for detailed climate monitoring",
+        "operationId": "get_ac_control_data_item",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the data item to retrieve",
+              "title": "Item Id"
+            },
+            "description": "The ID of the data item to retrieve"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_DataItem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_HTTPValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Application: ac-control"
+        ],
+        "summary": "[ac-control] Update data item",
+        "description": "Updates fields of an AC control data item (partial update). Use this to modify temperature setpoints, fan speeds, or other configurable climate parameters",
+        "operationId": "update_ac_control_data_item",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the data item to update",
+              "title": "Item Id"
+            },
+            "description": "The ID of the data item to update"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/infrastructure__router_manager__DataPayload",
+                "description": "Request body"
+              },
+              "examples": {
+                "example_1": {
+                  "summary": "Example 1",
+                  "value": {
+                    "data": {
+                      "FanSpeed": 2,
+                      "Mode": "eco",
+                      "unit": "level"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_DataItem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_HTTPValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/ac-control/faults": {
+      "get": {
+        "tags": [
+          "Application: ac-control"
+        ],
+        "summary": "[ac-control] List faults",
+        "description": "Returns all stored faults (DTCs) for AC control system including error codes, severity levels, and status information for climate system diagnostics",
+        "operationId": "get_ac_control_faults",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_FaultList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Application: ac-control"
+        ],
+        "summary": "[ac-control] Clear all faults",
+        "description": "Clears all stored faults from AC control system memory. Use with caution as this removes all climate system diagnostic trouble codes",
+        "operationId": "delete_ac_control_faults",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_StatusResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/ac-control/faults/{code}": {
+      "get": {
+        "tags": [
+          "Application: ac-control"
+        ],
+        "summary": "[ac-control] Get fault details",
+        "description": "Returns detailed fault information by code including environment data, severity level, and diagnostic translation IDs for HVAC system repair procedures",
+        "operationId": "get_ac_control_faults_code",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The fault code to retrieve",
+              "title": "Code"
+            },
+            "description": "The fault code to retrieve"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_Fault"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_HTTPValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Application: ac-control"
+        ],
+        "summary": "[ac-control] Delete fault",
+        "description": "Deletes a specific fault by code from the AC control system memory. Returns the deleted fault details for confirmation",
+        "operationId": "delete_ac_control_faults_code",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The fault code to delete",
+              "title": "Code"
+            },
+            "description": "The fault code to delete"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_Fault"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_HTTPValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/ac-control/operations": {
+      "get": {
+        "tags": [
+          "Application: ac-control"
+        ],
+        "summary": "[ac-control] List operations",
+        "description": "Returns all available AC control operations such as set eco mode, adjust climate zones, defrost control, and other HVAC system functions",
+        "operationId": "get_ac_control_operations",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_OperationList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/ac-control/operations/{operation_id}": {
+      "get": {
+        "tags": [
+          "Application: ac-control"
+        ],
+        "summary": "[ac-control] Get operation description",
+        "description": "Returns detailed AC control operation information including parameters, requirements, and supported modes without executing the operation",
+        "operationId": "get_ac_control_operations_operation",
+        "parameters": [
+          {
+            "name": "operation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the operation to get description for",
+              "title": "Operation Id"
+            },
+            "description": "The ID of the operation to get description for"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_OperationDescription"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_HTTPValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/ac-control/operations/{operation_id}/executions": {
+      "post": {
+        "tags": [
+          "Application: ac-control"
+        ],
+        "summary": "[ac-control] Execute operation",
+        "description": "Execute an AC control operation (e.g., set eco mode, adjust temperature) with optional parameters and return execution status with result or error information",
+        "operationId": "execute_ac_control_operation",
+        "parameters": [
+          {
+            "name": "operation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the operation to execute",
+              "title": "Operation Id"
+            },
+            "description": "The ID of the operation to execute"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/infrastructure__router_manager__ExecutionRequest",
+                "description": "Request body"
+              },
+              "examples": {
+                "example_1": {
+                  "summary": "Example 1",
+                  "value": {
+                    "parameters": {
+
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_ExecutionResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_HTTPValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/ac-control/operations/{operation_id}/executions/{execution_id}": {
+      "get": {
+        "tags": [
+          "Application: ac-control"
+        ],
+        "summary": "[ac-control] Get execution status",
+        "description": "Returns execution status and result for a specific AC operation execution including completion state, result data, or error information if failed",
+        "operationId": "get_ac_control_operation",
+        "parameters": [
+          {
+            "name": "operation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the operation",
+              "title": "Operation Id"
+            },
+            "description": "The ID of the operation"
+          },
+          {
+            "name": "execution_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the execution to check",
+              "title": "Execution Id"
+            },
+            "description": "The ID of the execution to check"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_ExecutionResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_HTTPValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/ac-control/ac-dashboard": {
+      "get": {
+        "tags": [
+          "Application: ac-control"
+        ],
+        "summary": "[ac-control] Ac Dashboard",
+        "description": "GET endpoint from ac-control",
+        "operationId": "get_ac_control_ac_dashboard",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/ac-control/": {
+      "get": {
+        "tags": [
+          "Application: ac-control"
+        ],
+        "summary": "[ac-control] Root",
+        "description": "Redirect root to API documentation.",
+        "operationId": "get_ac_control",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/light-control/logs": {
+      "get": {
+        "tags": [
+          "Application: light-control"
+        ],
+        "summary": "[light-control] Get application logs",
+        "description": "Returns all log entries from the light control application",
+        "operationId": "get_light_control_logs",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_LogList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Application: light-control"
+        ],
+        "summary": "[light-control] Add log entry",
+        "description": "Add a new log entry with event description",
+        "operationId": "add_light_control_log",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/infrastructure__router_manager__LogEntry__2",
+                "description": "Request body"
+              },
+              "examples": {
+                "example_1": {
+                  "summary": "Example 1",
+                  "value": {
+                    "event": "KUKSA light control started"
+                  }
+                },
+                "example_2": {
+                  "summary": "Example 2",
+                  "value": {
+                    "event": "Left indicator activated"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_LogEntry"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_HTTPValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/light-control/configuration": {
+      "get": {
+        "tags": [
+          "Application: light-control"
+        ],
+        "summary": "[light-control] Get configuration",
+        "description": "Retrieves all light control configuration parameters including brightness, auto mode settings, and operational thresholds (Kuksa-enabled version)",
+        "operationId": "get_light_control_configuration",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_ConfigurationResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/light-control/configuration/{key}": {
+      "put": {
+        "tags": [
+          "Application: light-control"
+        ],
+        "summary": "[light-control] Update configuration",
+        "description": "Updates a single light control configuration parameter by key. Use this to adjust brightness levels, enable/disable auto mode, or modify operational thresholds (Kuksa-enabled version)",
+        "operationId": "update_light_control_configuration_key",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The configuration key to update",
+              "title": "Key"
+            },
+            "description": "The configuration key to update"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/infrastructure__router_manager__ConfigUpdate__2",
+                "description": "Request body"
+              },
+              "examples": {
+                "example_1": {
+                  "summary": "Example 1",
+                  "value": {
+                    "value": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_ConfigurationUpdateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_HTTPValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/light-control/data": {
+      "get": {
+        "tags": [
+          "Application: light-control"
+        ],
+        "summary": "[light-control] List data items",
+        "description": "Returns all light control data items including ID, name, category, and current values for monitoring beam status, brightness levels, and light states",
+        "operationId": "get_light_control_data",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_DataList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/light-control/data/{item_id}": {
+      "get": {
+        "tags": [
+          "Application: light-control"
+        ],
+        "summary": "[light-control] Get data item",
+        "description": "Returns a specific light control data item by ID with current values, category information, and associated groups for detailed monitoring",
+        "operationId": "get_light_control_data_item",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the data item to retrieve",
+              "title": "Item Id"
+            },
+            "description": "The ID of the data item to retrieve"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_DataItem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_HTTPValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Application: light-control"
+        ],
+        "summary": "[light-control] Update data item",
+        "description": "Updates fields of a light control data item (partial update). Use this to modify brightness values or other configurable parameters",
+        "operationId": "update_light_control_data_item",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the data item to update",
+              "title": "Item Id"
+            },
+            "description": "The ID of the data item to update"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/infrastructure__router_manager__DataPayload__2",
+                "description": "Request body"
+              },
+              "examples": {
+                "example_1": {
+                  "summary": "Example 1",
+                  "value": {
+                    "data": {
+                      "state": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_DataItem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_HTTPValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/light-control/faults": {
+      "get": {
+        "tags": [
+          "Application: light-control"
+        ],
+        "summary": "[light-control] List faults",
+        "description": "Returns all stored faults (DTCs) for light control system including error codes, severity levels, and status information (Kuksa-enabled version)",
+        "operationId": "get_light_control_faults",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_FaultList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Application: light-control"
+        ],
+        "summary": "[light-control] Clear all faults",
+        "description": "Clears all stored faults from light control system memory. Use with caution as this removes all diagnostic trouble codes (Kuksa-enabled version)",
+        "operationId": "delete_light_control_faults",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_StatusResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/light-control/faults/{code}": {
+      "get": {
+        "tags": [
+          "Application: light-control"
+        ],
+        "summary": "[light-control] Get fault details",
+        "description": "Returns detailed fault information by code including environment data, severity level, and diagnostic translation IDs for repair procedures (Kuksa-enabled version)",
+        "operationId": "get_light_control_faults_code",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The fault code to retrieve",
+              "title": "Code"
+            },
+            "description": "The fault code to retrieve"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_Fault"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_HTTPValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Application: light-control"
+        ],
+        "summary": "[light-control] Delete fault",
+        "description": "Deletes a specific fault by code from the light control system memory. Returns the deleted fault details for confirmation (Kuksa-enabled version)",
+        "operationId": "delete_light_control_faults_code",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The fault code to delete",
+              "title": "Code"
+            },
+            "description": "The fault code to delete"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_Fault"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_HTTPValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/light-control/operations": {
+      "get": {
+        "tags": [
+          "Application: light-control"
+        ],
+        "summary": "[light-control] List operations",
+        "description": "Returns all available light control operations",
+        "operationId": "get_light_control_operations",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_OperationList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/light-control/operations/{operation_id}": {
+      "get": {
+        "tags": [
+          "Application: light-control"
+        ],
+        "summary": "[light-control] Get operation description",
+        "description": "Returns light control operation details without executing it",
+        "operationId": "get_light_control_operations_operation",
+        "parameters": [
+          {
+            "name": "operation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the operation to get description for",
+              "title": "Operation Id"
+            },
+            "description": "The ID of the operation to get description for"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_OperationDescription"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_HTTPValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/light-control/operations/{operation_id}/executions": {
+      "post": {
+        "tags": [
+          "Application: light-control"
+        ],
+        "summary": "[light-control] Execute operation",
+        "description": "Execute predefined light control operation to perform actions like turning all lights on/off in one go. Provide operation parameters as needed and receive execution status",
+        "operationId": "execute_light_control_operation",
+        "parameters": [
+          {
+            "name": "operation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the operation to execute",
+              "title": "Operation Id"
+            },
+            "description": "The ID of the operation to execute"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/infrastructure__router_manager__ExecutionRequest",
+                "description": "Request body"
+              },
+              "examples": {
+                "example_1": {
+                  "summary": "Example 1",
+                  "value": {
+                    "parameters": {
+
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_ExecutionResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_HTTPValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/light-control/operations/{operation_id}/executions/{execution_id}": {
+      "get": {
+        "tags": [
+          "Application: light-control"
+        ],
+        "summary": "[light-control] Get execution status",
+        "description": "Returns execution status and result for a specific light control operation execution",
+        "operationId": "get_light_control_operation",
+        "parameters": [
+          {
+            "name": "operation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the operation",
+              "title": "Operation Id"
+            },
+            "description": "The ID of the operation"
+          },
+          {
+            "name": "execution_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the execution to check",
+              "title": "Execution Id"
+            },
+            "description": "The ID of the execution to check"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_ExecutionResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_HTTPValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    },
+    "/app/light-control/": {
+      "get": {
+        "tags": [
+          "Application: light-control"
+        ],
+        "summary": "[light-control] Root",
+        "description": "GET endpoint from light-control",
+        "operationId": "get_light_control",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found"
+          },
+          "502": {
+            "description": "Bad gateway"
+          },
+          "504": {
+            "description": "Gateway timeout"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DiscoveredServer": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "url",
+          "status"
+        ],
+        "title": "DiscoveredServer",
+        "description": "Discovered server information model."
+      },
+      "DiscoveryResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "discovered_servers": {
+            "items": {
+              "$ref": "#/components/schemas/DiscoveredServer"
+            },
+            "type": "array",
+            "title": "Discovered Servers"
+          },
+          "docs_url": {
+            "type": "string",
+            "title": "Docs Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "discovered_servers",
+          "docs_url"
+        ],
+        "title": "DiscoveryResponse",
+        "description": "Response model for server discovery."
+      },
+      "EndpointMappingResponse": {
+        "properties": {
+          "endpoint_mapping": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "type": "object",
+            "title": "Endpoint Mapping"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "endpoint_mapping",
+          "description"
+        ],
+        "title": "EndpointMappingResponse",
+        "description": "Response model for endpoint mapping."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "version",
+          "type"
+        ],
+        "title": "HealthResponse",
+        "description": "Health check response model."
+      },
+      "RefreshResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "RefreshResponse",
+        "description": "Response model for documentation refresh."
+      },
+      "RegistrationResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "name",
+          "url",
+          "type"
+        ],
+        "title": "RegistrationResponse",
+        "description": "Response model for server registration."
+      },
+      "ServerRegistration": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "default": "server"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metadata",
+            "default": {
+
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "url"
+        ],
+        "title": "ServerRegistration",
+        "description": "Model for server registration data."
+      },
+      "ServersListResponse": {
+        "properties": {
+          "servers": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Servers"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "servers",
+          "count"
+        ],
+        "title": "ServersListResponse",
+        "description": "Response model for listing servers."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "infrastructure__router_manager__ConfigUpdate": {
+        "properties": {
+          "value": {
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "ConfigUpdate",
+        "examples": [
+          {
+            "value": 22
+          }
+        ]
+      },
+      "infrastructure__router_manager__ConfigUpdate__2": {
+        "properties": {
+          "value": {
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "ConfigUpdate",
+        "examples": [
+          {
+            "value": true
+          }
+        ]
+      },
+      "infrastructure__router_manager__DataPayload": {
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "DataPayload",
+        "examples": [
+          {
+            "data": {
+              "FanSpeed": 2,
+              "Mode": "eco",
+              "unit": "level"
+            }
+          }
+        ]
+      },
+      "infrastructure__router_manager__DataPayload__2": {
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "DataPayload",
+        "examples": [
+          {
+            "data": {
+              "state": true
+            }
+          }
+        ]
+      },
+      "infrastructure__router_manager__ExecutionRequest": {
+        "properties": {
+          "parameters": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parameters"
+          }
+        },
+        "type": "object",
+        "title": "ExecutionRequest",
+        "examples": [
+          {
+            "parameters": {
+
+            }
+          }
+        ]
+      },
+      "infrastructure__router_manager__LogEntry": {
+        "properties": {
+          "event": {
+            "type": "string",
+            "title": "Event"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event"
+        ],
+        "title": "LogEntry",
+        "examples": [
+          {
+            "event": "AC system started"
+          },
+          {
+            "event": "Temperature adjusted to 22°C"
+          }
+        ]
+      },
+      "infrastructure__router_manager__LogEntry__2": {
+        "properties": {
+          "event": {
+            "type": "string",
+            "title": "Event"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event"
+        ],
+        "title": "LogEntry",
+        "examples": [
+          {
+            "event": "KUKSA light control started"
+          },
+          {
+            "event": "Left indicator activated"
+          }
+        ]
+      },
+      "sovd_server_1_ConfigUpdate": {
+        "properties": {
+          "value": {
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "ConfigUpdate",
+        "examples": [
+          {
+            "value": 22
+          }
+        ]
+      },
+      "sovd_server_1_DataPayload": {
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "DataPayload",
+        "examples": [
+          {
+            "data": {
+              "FanSpeed": 2,
+              "Mode": "eco",
+              "unit": "level"
+            }
+          }
+        ]
+      },
+      "sovd_server_1_ExecutionRequest": {
+        "properties": {
+          "parameters": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parameters"
+          }
+        },
+        "type": "object",
+        "title": "ExecutionRequest",
+        "examples": [
+          {
+            "parameters": {
+
+            }
+          }
+        ]
+      },
+      "sovd_server_1_HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/sovd_server_1_ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "sovd_server_1_HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "version"
+        ],
+        "title": "HealthResponse"
+      },
+      "sovd_server_1_LogEntry": {
+        "properties": {
+          "event": {
+            "type": "string",
+            "title": "Event"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event"
+        ],
+        "title": "LogEntry",
+        "examples": [
+          {
+            "event": "AC system started"
+          },
+          {
+            "event": "Temperature adjusted to 22°C"
+          }
+        ]
+      },
+      "sovd_server_1_RefreshResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "RefreshResponse"
+      },
+      "sovd_server_1_RegistrationDebugResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "RegistrationDebugResponse"
+      },
+      "sovd_server_1_RegistrationResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "name",
+          "url",
+          "type"
+        ],
+        "title": "RegistrationResponse"
+      },
+      "sovd_server_1_ServiceRegistration": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "default": "app"
+          },
+          "endpoints": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Endpoints"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metadata",
+            "default": {
+
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "url",
+          "endpoints"
+        ],
+        "title": "ServiceRegistration",
+        "description": "Model for service registration data."
+      },
+      "sovd_server_1_ServicesListResponse": {
+        "properties": {
+          "services": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Services"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "services",
+          "count"
+        ],
+        "title": "ServicesListResponse"
+      },
+      "sovd_server_1_ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "sovd_server_1_health_monitoring_CpuInfo": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "load_percent": {
+            "type": "number",
+            "title": "Load Percent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "count",
+          "load_percent"
+        ],
+        "title": "CpuInfo",
+        "description": "CPU information"
+      },
+      "sovd_server_1_health_monitoring_DiskUsage": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "used": {
+            "type": "integer",
+            "title": "Used"
+          },
+          "free": {
+            "type": "integer",
+            "title": "Free"
+          },
+          "percent": {
+            "type": "number",
+            "title": "Percent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "used",
+          "free",
+          "percent"
+        ],
+        "title": "DiskUsage",
+        "description": "Disk usage information"
+      },
+      "sovd_server_1_health_monitoring_FilesystemInfo": {
+        "properties": {
+          "mountpoint": {
+            "type": "string",
+            "title": "Mountpoint"
+          },
+          "fstype": {
+            "type": "string",
+            "title": "Fstype"
+          },
+          "opts": {
+            "type": "string",
+            "title": "Opts"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/sovd_server_1_health_monitoring_DiskUsage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mountpoint",
+          "fstype",
+          "opts",
+          "usage"
+        ],
+        "title": "FilesystemInfo",
+        "description": "Filesystem information"
+      },
+      "sovd_server_1_health_monitoring_FilesystemResponse": {
+        "properties": {
+          "filesystems": {
+            "items": {
+              "$ref": "#/components/schemas/sovd_server_1_health_monitoring_FilesystemInfo"
+            },
+            "type": "array",
+            "title": "Filesystems"
+          }
+        },
+        "type": "object",
+        "required": [
+          "filesystems"
+        ],
+        "title": "FilesystemResponse",
+        "description": "Filesystem statistics response",
+        "examples": [
+          {
+            "filesystems": [
+              {
+                "fstype": "ext4",
+                "mountpoint": "/",
+                "opts": "rw,relatime",
+                "usage": {
+                  "free": 53687091200,
+                  "percent": 50,
+                  "total": 107374182400,
+                  "used": 53687091200
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "sovd_server_1_health_monitoring_HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/sovd_server_1_health_monitoring_ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "sovd_server_1_health_monitoring_HealthResponse": {
+        "properties": {
+          "system": {
+            "type": "string",
+            "title": "System"
+          },
+          "release": {
+            "type": "string",
+            "title": "Release"
+          },
+          "machine": {
+            "type": "string",
+            "title": "Machine"
+          },
+          "cpu": {
+            "$ref": "#/components/schemas/sovd_server_1_health_monitoring_CpuInfo"
+          },
+          "memory": {
+            "$ref": "#/components/schemas/sovd_server_1_health_monitoring_MemoryInfo"
+          },
+          "uptime_seconds": {
+            "type": "integer",
+            "title": "Uptime Seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "system",
+          "release",
+          "machine",
+          "cpu",
+          "memory",
+          "uptime_seconds"
+        ],
+        "title": "HealthResponse",
+        "description": "System health metrics response",
+        "examples": [
+          {
+            "cpu": {
+              "count": 8,
+              "load_percent": 45.2
+            },
+            "machine": "x86_64",
+            "memory": {
+              "available": 8388608000,
+              "free": 8388608000,
+              "percent": 50,
+              "total": 16777216000,
+              "used": 8388608000
+            },
+            "release": "5.15.0-1234-generic",
+            "system": "Linux",
+            "uptime_seconds": 86400
+          }
+        ]
+      },
+      "sovd_server_1_health_monitoring_MemoryInfo": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "available": {
+            "type": "integer",
+            "title": "Available"
+          },
+          "percent": {
+            "type": "number",
+            "title": "Percent"
+          },
+          "used": {
+            "type": "integer",
+            "title": "Used"
+          },
+          "free": {
+            "type": "integer",
+            "title": "Free"
+          },
+          "active": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active"
+          },
+          "inactive": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inactive"
+          },
+          "buffers": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buffers"
+          },
+          "cached": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cached"
+          },
+          "shared": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shared"
+          },
+          "slab": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slab"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "available",
+          "percent",
+          "used",
+          "free"
+        ],
+        "title": "MemoryInfo",
+        "description": "Memory information"
+      },
+      "sovd_server_1_health_monitoring_NetworkInterfaceInfo": {
+        "properties": {
+          "is_up": {
+            "type": "boolean",
+            "title": "Is Up"
+          },
+          "speed": {
+            "type": "integer",
+            "title": "Speed"
+          },
+          "addresses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Addresses"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_up",
+          "speed",
+          "addresses"
+        ],
+        "title": "NetworkInterfaceInfo",
+        "description": "Network interface information"
+      },
+      "sovd_server_1_health_monitoring_NetworkStatsResponse": {
+        "properties": {
+          "interfaces": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/sovd_server_1_health_monitoring_NetworkInterfaceInfo"
+            },
+            "type": "object",
+            "title": "Interfaces"
+          }
+        },
+        "type": "object",
+        "required": [
+          "interfaces"
+        ],
+        "title": "NetworkStatsResponse",
+        "description": "Network statistics response",
+        "examples": [
+          {
+            "interfaces": {
+              "eth0": {
+                "addresses": [
+                  "192.168.1.100",
+                  "aa:bb:cc:dd:ee:ff"
+                ],
+                "is_up": true,
+                "speed": 1000
+              },
+              "lo": {
+                "addresses": [
+                  "127.0.0.1",
+                  "::1",
+                  "00:00:00:00:00:00"
+                ],
+                "is_up": true,
+                "speed": 0
+              }
+            }
+          }
+        ]
+      },
+      "sovd_server_1_health_monitoring_ProcessDetailResponse": {
+        "properties": {
+          "pid": {
+            "type": "integer",
+            "title": "Pid"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "cmdline": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cmdline"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "cpu_times": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Cpu Times"
+          },
+          "memory_info": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Memory Info"
+          },
+          "create_time": {
+            "type": "string",
+            "title": "Create Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pid",
+          "name",
+          "cmdline",
+          "status",
+          "cpu_times",
+          "memory_info",
+          "create_time"
+        ],
+        "title": "ProcessDetailResponse",
+        "description": "Detailed process information",
+        "examples": [
+          {
+            "cmdline": [
+              "python",
+              "-m",
+              "uvicorn",
+              "main:app"
+            ],
+            "cpu_times": {
+              "system": 3.2,
+              "user": 12.5
+            },
+            "create_time": "2025-10-21T10:30:00Z",
+            "memory_info": {
+              "rss": 51200000,
+              "vms": 102400000
+            },
+            "name": "python",
+            "pid": 1234,
+            "status": "running"
+          }
+        ]
+      },
+      "sovd_server_1_health_monitoring_ProcessInfo": {
+        "properties": {
+          "pid": {
+            "type": "integer",
+            "title": "Pid"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "cpu_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cpu Percent"
+          },
+          "memory_rss": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Memory Rss"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pid",
+          "name",
+          "status"
+        ],
+        "title": "ProcessInfo",
+        "description": "Process information"
+      },
+      "sovd_server_1_health_monitoring_ProcessListResponse": {
+        "properties": {
+          "processes": {
+            "items": {
+              "$ref": "#/components/schemas/sovd_server_1_health_monitoring_ProcessInfo"
+            },
+            "type": "array",
+            "title": "Processes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "processes"
+        ],
+        "title": "ProcessListResponse",
+        "description": "Process list response",
+        "examples": [
+          {
+            "processes": [
+              {
+                "cpu_percent": 0.1,
+                "memory_rss": 8192000,
+                "name": "systemd",
+                "pid": 1,
+                "status": "running"
+              },
+              {
+                "cpu_percent": 2.5,
+                "memory_rss": 51200000,
+                "name": "python",
+                "pid": 1234,
+                "status": "running"
+              }
+            ]
+          }
+        ]
+      },
+      "sovd_server_1_health_monitoring_ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "sovd_server_1_ac_control_ConfigUpdate": {
+        "properties": {
+          "value": {
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "ConfigUpdate",
+        "examples": [
+          {
+            "value": 22
+          }
+        ]
+      },
+      "sovd_server_1_ac_control_ConfigurationResponse": {
+        "properties": {
+          "configuration": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Configuration"
+          }
+        },
+        "type": "object",
+        "required": [
+          "configuration"
+        ],
+        "title": "ConfigurationResponse",
+        "description": "Response containing configuration values",
+        "examples": [
+          {
+            "configuration": {
+              "example_setting": "default",
+              "feature_enabled": true,
+              "max_items": 10,
+              "special_feature_enabled": false
+            }
+          }
+        ]
+      },
+      "sovd_server_1_ac_control_ConfigurationUpdateResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "value": {
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "key",
+          "value"
+        ],
+        "title": "ConfigurationUpdateResponse",
+        "description": "Response after updating a configuration value",
+        "examples": [
+          {
+            "key": "max_items",
+            "status": "updated",
+            "value": 22
+          }
+        ]
+      },
+      "sovd_server_1_ac_control_DataItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "groups": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Groups"
+          },
+          "data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "category",
+          "data"
+        ],
+        "title": "DataItem",
+        "examples": [
+          {
+            "category": "currentData",
+            "data": {
+              "FanSpeed": 2,
+              "Mode": "eco",
+              "unit": "level"
+            },
+            "groups": [
+              "climate"
+            ],
+            "id": "AC",
+            "name": "Air Conditioning"
+          }
+        ]
+      },
+      "sovd_server_1_ac_control_DataList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/sovd_server_1_ac_control_DataItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "DataList",
+        "examples": [
+          {
+            "items": [
+              {
+                "category": "currentData",
+                "data": {
+                  "FanSpeed": 2,
+                  "Mode": "eco",
+                  "unit": "level"
+                },
+                "groups": [
+                  "climate"
+                ],
+                "id": "AC",
+                "name": "Air Conditioning"
+              },
+              {
+                "category": "currentData",
+                "data": {
+                  "Temperature": 22,
+                  "unit": "°C"
+                },
+                "groups": [
+                  "climate"
+                ],
+                "id": "RoomTemp",
+                "name": "Room Temperature"
+              },
+              {
+                "category": "identData",
+                "data": {
+                  "Version": "1.0.0"
+                },
+                "id": "AppInfo",
+                "name": "Window Control Version Numbers"
+              }
+            ]
+          }
+        ]
+      },
+      "sovd_server_1_ac_control_DataPayload": {
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "DataPayload",
+        "examples": [
+          {
+            "data": {
+              "FanSpeed": 2,
+              "Mode": "eco",
+              "unit": "level"
+            }
+          }
+        ]
+      },
+      "sovd_server_1_ac_control_ExecutionRequest": {
+        "properties": {
+          "parameters": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parameters",
+            "default": {
+
+            }
+          }
+        },
+        "type": "object",
+        "title": "ExecutionRequest",
+        "examples": [
+          {
+            "parameters": {
+
+            }
+          }
+        ]
+      },
+      "sovd_server_1_ac_control_ExecutionResult": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "result": {
+            "anyOf": [
+              {
+
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "created_at"
+        ],
+        "title": "ExecutionResult",
+        "examples": [
+          {
+            "completed_at": "2025-10-22T17:23:16Z",
+            "created_at": "2025-10-22T17:23:16Z",
+            "id": "5b990fc1-169f-4079-8384-e45f7dac4004",
+            "result": {
+              "message": "AC set to eco (fan speed 2)"
+            },
+            "status": "completed"
+          }
+        ]
+      },
+      "sovd_server_1_ac_control_Fault": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope"
+          },
+          "fault_name": {
+            "type": "string",
+            "title": "Fault Name"
+          },
+          "severity": {
+            "type": "integer",
+            "title": "Severity"
+          },
+          "status": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Status"
+          },
+          "display_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Code"
+          },
+          "fault_translation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fault Translation Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "scope",
+          "fault_name",
+          "severity",
+          "status"
+        ],
+        "title": "Fault",
+        "examples": [
+          {
+            "code": "0012E3",
+            "display_code": "P102",
+            "fault_name": "No signal from sensor",
+            "fault_translation_id": "CAMERA_0012E3_tid",
+            "scope": "Default",
+            "severity": 1,
+            "status": {
+              "aggregatedStatus": "active",
+              "confirmedDTC": "1",
+              "testFailed": "1"
+            }
+          }
+        ]
+      },
+      "sovd_server_1_ac_control_FaultList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/sovd_server_1_ac_control_Fault"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "FaultList",
+        "examples": [
+          {
+            "items": [
+              {
+                "code": "modelMissing",
+                "fault_name": "No Object Recognition Model available",
+                "fault_translation_id": "ALK_NoObjModel_tid",
+                "scope": "Default",
+                "severity": 1,
+                "status": {
+                  "aggregatedStatus": "active"
+                }
+              },
+              {
+                "code": "0012E3",
+                "display_code": "P102",
+                "fault_name": "No signal from sensor",
+                "fault_translation_id": "CAMERA_0012E3_tid",
+                "scope": "Default",
+                "severity": 1,
+                "status": {
+                  "aggregatedStatus": "active",
+                  "confirmedDTC": "1",
+                  "testFailed": "1"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "sovd_server_1_ac_control_HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/sovd_server_1_ac_control_ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "sovd_server_1_ac_control_LogEntry": {
+        "properties": {
+          "event": {
+            "type": "string",
+            "title": "Event"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event"
+        ],
+        "title": "LogEntry",
+        "examples": [
+          {
+            "event": "AC system started"
+          },
+          {
+            "event": "Temperature adjusted to 22°C"
+          }
+        ]
+      },
+      "sovd_server_1_ac_control_LogItem": {
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "event": {
+            "type": "string",
+            "title": "Event"
+          }
+        },
+        "type": "object",
+        "required": [
+          "timestamp",
+          "event"
+        ],
+        "title": "LogItem",
+        "examples": [
+          {
+            "event": "AC system started",
+            "timestamp": "2025-10-21T10:30:00Z"
+          }
+        ]
+      },
+      "sovd_server_1_ac_control_LogList": {
+        "properties": {
+          "logs": {
+            "items": {
+              "$ref": "#/components/schemas/sovd_server_1_ac_control_LogItem"
+            },
+            "type": "array",
+            "title": "Logs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "logs"
+        ],
+        "title": "LogList",
+        "examples": [
+          {
+            "logs": [
+              {
+                "event": "AC system started",
+                "timestamp": "2025-10-21T10:30:00Z"
+              },
+              {
+                "event": "Temperature adjusted to 22°C",
+                "timestamp": "2025-10-21T14:15:30Z"
+              }
+            ]
+          }
+        ]
+      },
+      "sovd_server_1_ac_control_Operation": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "description"
+        ],
+        "title": "Operation"
+      },
+      "sovd_server_1_ac_control_OperationDescription": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "parameters": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/sovd_server_1_ac_control_OperationParameter"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parameters",
+            "default": []
+          },
+          "proximity_requirements": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proximity Requirements",
+            "default": []
+          },
+          "supported_modes": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supported Modes",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description"
+        ],
+        "title": "OperationDescription",
+        "examples": [
+          {
+            "description": "Switch to eco mode.",
+            "id": "set_eco",
+            "name": "Set Eco",
+            "parameters": [],
+            "proximity_requirements": [],
+            "supported_modes": [
+              "normal"
+            ]
+          }
+        ]
+      },
+      "sovd_server_1_ac_control_OperationList": {
+        "properties": {
+          "operations": {
+            "items": {
+              "$ref": "#/components/schemas/sovd_server_1_ac_control_Operation"
+            },
+            "type": "array",
+            "title": "Operations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "operations"
+        ],
+        "title": "OperationList",
+        "examples": [
+          {
+            "operations": [
+              {
+                "description": "Switch to eco mode.",
+                "id": "set_eco"
+              },
+              {
+                "description": "Switch to highspeed mode.",
+                "id": "set_highspeed"
+              },
+              {
+                "description": "Turn AC off.",
+                "id": "set_off"
+              }
+            ]
+          }
+        ]
+      },
+      "sovd_server_1_ac_control_OperationParameter": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required",
+            "default": true
+          },
+          "default": {
+            "anyOf": [
+              {
+
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "type"
+        ],
+        "title": "OperationParameter"
+      },
+      "sovd_server_1_ac_control_StatusResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "StatusResponse",
+        "description": "Generic status response",
+        "examples": [
+          {
+            "message": "Fault cleared successfully",
+            "status": "success"
+          }
+        ]
+      },
+      "sovd_server_1_ac_control_ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "sovd_server_2_ConfigUpdate": {
+        "properties": {
+          "value": {
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "ConfigUpdate",
+        "examples": [
+          {
+            "value": true
+          }
+        ]
+      },
+      "sovd_server_2_DataPayload": {
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "DataPayload",
+        "examples": [
+          {
+            "data": {
+              "state": true
+            }
+          }
+        ]
+      },
+      "sovd_server_2_ExecutionRequest": {
+        "properties": {
+          "parameters": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parameters"
+          }
+        },
+        "type": "object",
+        "title": "ExecutionRequest",
+        "examples": [
+          {
+            "parameters": {
+
+            }
+          }
+        ]
+      },
+      "sovd_server_2_HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/sovd_server_2_ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "sovd_server_2_HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "version"
+        ],
+        "title": "HealthResponse"
+      },
+      "sovd_server_2_LogEntry": {
+        "properties": {
+          "event": {
+            "type": "string",
+            "title": "Event"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event"
+        ],
+        "title": "LogEntry",
+        "examples": [
+          {
+            "event": "KUKSA light control started"
+          },
+          {
+            "event": "Left indicator activated"
+          }
+        ]
+      },
+      "sovd_server_2_RefreshResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "RefreshResponse"
+      },
+      "sovd_server_2_RegistrationDebugResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "RegistrationDebugResponse"
+      },
+      "sovd_server_2_RegistrationResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "name",
+          "url",
+          "type"
+        ],
+        "title": "RegistrationResponse"
+      },
+      "sovd_server_2_ServiceRegistration": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "default": "app"
+          },
+          "endpoints": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Endpoints"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metadata",
+            "default": {
+
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "url",
+          "endpoints"
+        ],
+        "title": "ServiceRegistration",
+        "description": "Model for service registration data."
+      },
+      "sovd_server_2_ServicesListResponse": {
+        "properties": {
+          "services": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Services"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "services",
+          "count"
+        ],
+        "title": "ServicesListResponse"
+      },
+      "sovd_server_2_ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "sovd_server_2_light_control_ConfigUpdate": {
+        "properties": {
+          "value": {
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "ConfigUpdate",
+        "examples": [
+          {
+            "value": true
+          }
+        ]
+      },
+      "sovd_server_2_light_control_ConfigurationResponse": {
+        "properties": {
+          "configuration": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Configuration"
+          }
+        },
+        "type": "object",
+        "required": [
+          "configuration"
+        ],
+        "title": "ConfigurationResponse",
+        "description": "Response containing configuration values",
+        "examples": [
+          {
+            "configuration": {
+              "example_setting": "default",
+              "feature_enabled": true,
+              "max_items": 10,
+              "special_feature_enabled": false
+            }
+          }
+        ]
+      },
+      "sovd_server_2_light_control_ConfigurationUpdateResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "value": {
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "key",
+          "value"
+        ],
+        "title": "ConfigurationUpdateResponse",
+        "description": "Response after updating a configuration value",
+        "examples": [
+          {
+            "key": "feature_enabled",
+            "status": "updated",
+            "value": true
+          }
+        ]
+      },
+      "sovd_server_2_light_control_DataItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "groups": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Groups"
+          },
+          "data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "category",
+          "data"
+        ],
+        "title": "DataItem",
+        "examples": [
+          {
+            "category": "currentData",
+            "data": {
+
+            },
+            "groups": [
+              "interieur"
+            ],
+            "id": "Dome",
+            "name": "Dome"
+          }
+        ]
+      },
+      "sovd_server_2_light_control_DataList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/sovd_server_2_light_control_DataItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "DataList",
+        "examples": [
+          {
+            "items": [
+              {
+                "category": "currentData",
+                "data": {
+
+                },
+                "groups": [
+                  "beam",
+                  "front"
+                ],
+                "id": "BeamLow",
+                "name": "Beam Low"
+              },
+              {
+                "category": "currentData",
+                "data": {
+
+                },
+                "groups": [
+                  "interieur"
+                ],
+                "id": "Dome",
+                "name": "Dome"
+              },
+              {
+                "category": "identData",
+                "data": {
+                  "Version": "1.0.0"
+                },
+                "id": "AppInfo",
+                "name": "Light Control Version"
+              }
+            ]
+          }
+        ]
+      },
+      "sovd_server_2_light_control_DataPayload": {
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "DataPayload",
+        "examples": [
+          {
+            "data": {
+              "state": true
+            }
+          }
+        ]
+      },
+      "sovd_server_2_light_control_ExecutionRequest": {
+        "properties": {
+          "parameters": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parameters",
+            "default": {
+
+            }
+          }
+        },
+        "type": "object",
+        "title": "ExecutionRequest",
+        "examples": [
+          {
+            "parameters": {
+
+            }
+          }
+        ]
+      },
+      "sovd_server_2_light_control_ExecutionResult": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "result": {
+            "anyOf": [
+              {
+
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "created_at"
+        ],
+        "title": "ExecutionResult",
+        "examples": [
+          {
+            "completed_at": "2025-10-22T17:49:05Z",
+            "created_at": "2025-10-22T17:49:05Z",
+            "id": "cf9a7c7c-2562-4c5b-b7f0-85657a164068",
+            "result": "Hazard is set to ON",
+            "status": "completed"
+          }
+        ]
+      },
+      "sovd_server_2_light_control_Fault": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope"
+          },
+          "fault_name": {
+            "type": "string",
+            "title": "Fault Name"
+          },
+          "severity": {
+            "type": "integer",
+            "title": "Severity"
+          },
+          "status": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Status"
+          },
+          "display_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Code"
+          },
+          "fault_translation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fault Translation Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "scope",
+          "fault_name",
+          "severity",
+          "status"
+        ],
+        "title": "Fault",
+        "examples": [
+          {
+            "code": "B1234",
+            "fault_name": "Brake Light Circuit Malfunction",
+            "fault_translation_id": "BRAKE_LIGHT_MALFUNCTION_tid",
+            "scope": "Default",
+            "severity": 2,
+            "status": {
+              "aggregatedStatus": "active"
+            }
+          }
+        ]
+      },
+      "sovd_server_2_light_control_FaultList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/sovd_server_2_light_control_Fault"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "FaultList",
+        "examples": [
+          {
+            "items": [
+              {
+                "code": "B1234",
+                "fault_name": "Brake Light Circuit Malfunction",
+                "fault_translation_id": "BRAKE_LIGHT_MALFUNCTION_tid",
+                "scope": "Default",
+                "severity": 2,
+                "status": {
+                  "aggregatedStatus": "active"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "sovd_server_2_light_control_HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/sovd_server_2_light_control_ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "sovd_server_2_light_control_LogEntry": {
+        "properties": {
+          "event": {
+            "type": "string",
+            "title": "Event"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event"
+        ],
+        "title": "LogEntry",
+        "examples": [
+          {
+            "event": "KUKSA light control started"
+          },
+          {
+            "event": "Left indicator activated"
+          }
+        ]
+      },
+      "sovd_server_2_light_control_LogItem": {
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "event": {
+            "type": "string",
+            "title": "Event"
+          }
+        },
+        "type": "object",
+        "required": [
+          "timestamp",
+          "event"
+        ],
+        "title": "LogItem",
+        "examples": [
+          {
+            "event": "KUKSA databroker connected",
+            "timestamp": "2025-10-21T10:30:00Z"
+          }
+        ]
+      },
+      "sovd_server_2_light_control_LogList": {
+        "properties": {
+          "logs": {
+            "items": {
+              "$ref": "#/components/schemas/sovd_server_2_light_control_LogItem"
+            },
+            "type": "array",
+            "title": "Logs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "logs"
+        ],
+        "title": "LogList",
+        "examples": [
+          {
+            "logs": [
+              {
+                "event": "KUKSA databroker connected",
+                "timestamp": "2025-10-21T10:30:00Z"
+              },
+              {
+                "event": "Left indicator activated",
+                "timestamp": "2025-10-21T10:31:15Z"
+              }
+            ]
+          }
+        ]
+      },
+      "sovd_server_2_light_control_Operation": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "description"
+        ],
+        "title": "Operation"
+      },
+      "sovd_server_2_light_control_OperationDescription": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "parameters": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/sovd_server_2_light_control_OperationParameter"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parameters",
+            "default": []
+          },
+          "proximity_requirements": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proximity Requirements",
+            "default": []
+          },
+          "supported_modes": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supported Modes",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description"
+        ],
+        "title": "OperationDescription",
+        "examples": [
+          {
+            "description": "Toggle hazard lights.",
+            "id": "toggle_hazard_lights",
+            "name": "Toggle Hazard Lights",
+            "parameters": [],
+            "proximity_requirements": [],
+            "supported_modes": [
+              "normal"
+            ]
+          }
+        ]
+      },
+      "sovd_server_2_light_control_OperationList": {
+        "properties": {
+          "operations": {
+            "items": {
+              "$ref": "#/components/schemas/sovd_server_2_light_control_Operation"
+            },
+            "type": "array",
+            "title": "Operations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "operations"
+        ],
+        "title": "OperationList",
+        "examples": [
+          {
+            "operations": [
+              {
+                "description": "Toggle hazard lights.",
+                "id": "toggle_hazard_lights"
+              },
+              {
+                "description": "Set all lights to OFF.",
+                "id": "set_all_lights_off"
+              },
+              {
+                "description": "Toggle low and high beam.",
+                "id": "toggle_beam_lights"
+              }
+            ]
+          }
+        ]
+      },
+      "sovd_server_2_light_control_OperationParameter": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required",
+            "default": true
+          },
+          "default": {
+            "anyOf": [
+              {
+
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "type"
+        ],
+        "title": "OperationParameter"
+      },
+      "sovd_server_2_light_control_StatusResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "StatusResponse",
+        "description": "Generic status response",
+        "examples": [
+          {
+            "message": "Operation completed successfully",
+            "status": "success"
+          }
+        ]
+      },
+      "sovd_server_2_light_control_ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
